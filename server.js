@@ -1,4 +1,4 @@
-const express = require("express");
+\const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -40,26 +40,22 @@ db.get("SELECT * FROM users WHERE role='admin'", async (err,user)=>{
 
 // LOGIN
 app.post("/login",(req,res)=>{
-  db.get(
-    "SELECT * FROM users WHERE username=?",
-    [req.body.username],
-    async (err,user)=>{
+  db.get("SELECT * FROM users WHERE username=?", [req.body.username],
+  async (err,user)=>{
 
-      if(!user) return res.status(400).json({error:"no user"});
+    if(!user) return res.status(400).json({error:"no user"});
 
-      const ok = await bcrypt.compare(req.body.password,user.password);
-      if(!ok) return res.status(400).json({error:"wrong password"});
+    const ok = await bcrypt.compare(req.body.password,user.password);
+    if(!ok) return res.status(400).json({error:"wrong password"});
 
-      const token = jwt.sign({
-        id:user.id,
-        role:user.role,
-        plan:user.plan,
-        username:user.username
-      },SECRET,{expiresIn:"7d"});
+    const token = jwt.sign({
+      id:user.id,
+      role:user.role,
+      username:user.username
+    },SECRET,{expiresIn:"7d"});
 
-      res.json({token});
-    }
-  );
+    res.json({token});
+  });
 });
 
 // AUTH
@@ -77,7 +73,7 @@ function auth(req,res,next){
 
 // ADMIN CHECK
 function admin(req,res,next){
-  if(req.user.role!=="admin") return res.sendStatus(403);
+  if(req.user.role !== "admin") return res.sendStatus(403);
   next();
 }
 
@@ -98,7 +94,7 @@ app.get("/tasks",auth,(req,res)=>{
   );
 });
 
-// ADMIN USERS
+// USERS (ADMIN ONLY)
 app.get("/users",auth,admin,(req,res)=>{
   db.all(
     "SELECT id,username,role,plan FROM users",
@@ -106,7 +102,7 @@ app.get("/users",auth,admin,(req,res)=>{
   );
 });
 
-// ADMIN REPORT
+// REPORT (ADMIN ONLY)
 app.get("/report",auth,admin,(req,res)=>{
   db.all(`
     SELECT users.username, tasks.title
